@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;
 
-import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
 import com.sun.jna.platform.win32.WinDef;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -50,9 +50,9 @@ public class AeroSnapTest extends Application {
 
         Label instructionLabel = new Label(
                 "• 拖动到左边缘：窗口应该占据左半屏幕\n" +
-                "• 拖动到右边缘：窗口应该占据右半屏幕\n" +
-                "• 拖动到顶部：窗口应该最大化\n" +
-                "• Win + 左/右箭头：也可以使用快捷键测试"
+                        "• 拖动到右边缘：窗口应该占据右半屏幕\n" +
+                        "• 拖动到顶部：窗口应该最大化\n" +
+                        "• Win + 左/右箭头：也可以使用快捷键测试"
         );
         instructionLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #999;");
 

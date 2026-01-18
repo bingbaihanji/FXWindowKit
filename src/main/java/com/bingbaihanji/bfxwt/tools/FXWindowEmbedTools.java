@@ -1,4 +1,4 @@
-package com.bingbaihanji.bfxt.tools;
+package com.bingbaihanji.bfxwt.tools;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.BaseTSD;
@@ -8,8 +8,8 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.stage.Stage;
 
-import static com.bingbaihanji.bfxt.tools.FXNativeWindowsTools.Win32Constants.WindowLongIndex.GWL_STYLE;
-import static com.bingbaihanji.bfxt.tools.FXNativeWindowsTools.Win32Constants.WindowStyle.*;
+import static com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools.Win32Constants.WindowLongIndex.GWL_STYLE;
+import static com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools.Win32Constants.WindowStyle.*;
 
 /**
  * JavaFX 窗口嵌入工具类

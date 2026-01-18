@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt.stage;
+package com.bingbaihanji.bfxwt.stage;
 
-import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
 import com.sun.jna.platform.win32.WinDef;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -349,6 +349,7 @@ public abstract class AbstractCustomWindow extends Application {
 
         return bar;
     }
+
     private double computeHBoxMinWidth(HBox box) {
         double width = 0;
 
@@ -478,7 +479,7 @@ public abstract class AbstractCustomWindow extends Application {
      */
     protected final void addRightComponent(javafx.scene.Node node) {
         node.setCursor(Cursor.DEFAULT);  // 设置默认光标
-        rightBox.getChildren().addFirst(node);  // 插入到最前面
+        rightBox.getChildren().add(0, node);  // 插入到最前面
         rightComponentsStack.push(node);      // 同步到栈中以便管理
     }
 

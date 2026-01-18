@@ -1,4 +1,4 @@
-package com.bingbaihanji.bfxt.tools;
+package com.bingbaihanji.bfxwt.tools;
 
 
 import com.sun.jna.Library;
@@ -539,6 +539,7 @@ public class FXNativeWindowsTools {
                         | Win32Constants.SetWindowPosFlags.SWP_NOACTIVATE
         );
     }
+
     /**
      * 最小化窗口（系统级）
      *
@@ -839,6 +840,162 @@ public class FXNativeWindowsTools {
     //  Windows API 接口定义
 
     /**
+     * 调试工具：打印当前进程的所有窗口信息（包括窗口类名、标题、句柄）
+     *
+     * @implNote 仅适用于 Windows 平台
+     */
+    public static void printAllWindowsInfo() {
+        int currentPid = Kernel32Api.INSTANCE.GetCurrentProcessId();
+        System.out.println("\n========== 当前进程的所有窗口 ==========");
+        System.out.println("进程 ID: " + currentPid);
+        System.out.println();
+
+        final int[] windowCount = {0};
+
+        User32.INSTANCE.EnumWindows((hWnd, lParam) -> {
+            IntByReference windowPid = new IntByReference();
+            User32.INSTANCE.GetWindowThreadProcessId(hWnd, windowPid);
+
+            if (windowPid.getValue() == currentPid) {
+                windowCount[0]++;
+
+                // 获取窗口类名
+                char[] className = new char[256];
+                User32.INSTANCE.GetClassName(hWnd, className, className.length);
+                String classNameStr = new String(className).trim();
+
+                // 获取窗口标题
+                char[] windowText = new char[256];
+                User32.INSTANCE.GetWindowText(hWnd, windowText, windowText.length);
+                String windowTitle = new String(windowText).trim();
+
+                // 获取窗口句柄
+                long hwndValue = Pointer.nativeValue(hWnd.getPointer());
+
+                System.out.println("窗口 " + windowCount[0] + ":");
+                System.out.println("  句柄: 0x" + Long.toHexString(hwndValue).toUpperCase());
+                System.out.println("  类名: " + classNameStr);
+                System.out.println("  标题: " + (windowTitle.isEmpty() ? "(无标题)" : windowTitle));
+                System.out.println();
+            }
+            return true;
+        }, null);
+
+        if (windowCount[0] == 0) {
+            System.out.println("未找到任何窗口");
+        }
+        System.out.println("\n");
+    }
+
+    /**
+     * DWM窗口属性ID枚举 (窗口样式 暗色 与 亮色)
+     * 对应原接口中的 DWMWA_* 常量
+     */
+    public enum DwmWindowAttribute {
+        // 沉浸式深色模式属性(暗色)
+        USE_IMMERSIVE_DARK_MODE(20),
+        // 窗口圆角偏好属性(亮色)
+        WINDOW_CORNER_PREFERENCE(33);
+
+        // 存储属性对应的整型值
+        private final int value;
+
+        // 私有构造方法初始化值
+        DwmWindowAttribute(int value) {
+            this.value = value;
+        }
+
+        // 根据数值反向查找枚举（可选，便于使用）
+        public static DwmWindowAttribute fromValue(int value) {
+            for (DwmWindowAttribute attr : DwmWindowAttribute.values()) {
+                if (attr.value == value) {
+                    return attr;
+                }
+            }
+            throw new IllegalArgumentException("无效的DWM窗口属性值: " + value);
+        }
+
+        // 获取属性对应的整型值
+        public int getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * DWM窗口圆角偏好枚举
+     * 对应原接口中的 DWMWCP_* 常量
+     */
+    public enum DwmWindowCornerPreference {
+        // 默认圆角设置
+        DEFAULT(0),
+        // 不圆角
+        DO_NOT_ROUND(1),
+        // 圆角
+        ROUND(2),
+        // 小圆角
+        ROUND_SMALL(3);
+
+        // 存储偏好值对应的整型值
+        private final int value;
+
+        // 私有构造方法初始化值
+        DwmWindowCornerPreference(int value) {
+            this.value = value;
+        }
+
+        // 根据数值反向查找枚举（可选）
+        public static DwmWindowCornerPreference fromValue(int value) {
+            for (DwmWindowCornerPreference pref : DwmWindowCornerPreference.values()) {
+                if (pref.value == value) {
+                    return pref;
+                }
+            }
+            throw new IllegalArgumentException("无效的DWM窗口圆角偏好值: " + value);
+        }
+
+        // 获取偏好值对应的整型值
+        public int getValue() {
+            return value;
+        }
+    }
+
+    //  Windows 常量枚举定义
+
+    /**
+     * 系统背景类型（Windows 11）
+     *
+     * <p>
+     * 用于设置窗口的系统背景效果，如 Mica（云母）、Acrylic（亚克力）等。
+     * </p>
+     */
+    public enum SystemBackdropType {
+        /**
+         * 无背景效果
+         */
+        DWMSBT_NONE(1),
+
+        /**
+         * Mica 效果（云母）
+         */
+        DWMSBT_MICA(2),
+
+        /**
+         * Acrylic 效果（亚克力），需要 Windows 11
+         */
+        DWMSBT_ACRYLIC(3);
+
+        private final int value;
+
+        SystemBackdropType(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    /**
      * DWM (Desktop Window Manager) API 接口
      *
      * <p>
@@ -908,6 +1065,7 @@ public class FXNativeWindowsTools {
             }
         }
     }
+
 
     /**
      * User32 API 接口扩展
@@ -1032,6 +1190,8 @@ public class FXNativeWindowsTools {
         boolean IsIconic(HWND hwnd);
     }
 
+    // Win32 常量定义（统一管理）
+
     /**
      * Kernel32 API 接口扩展
      *
@@ -1049,117 +1209,6 @@ public class FXNativeWindowsTools {
          */
         int GetCurrentProcessId();
     }
-
-    //  Windows 常量枚举定义
-
-    /**
-     * DWM窗口属性ID枚举 (窗口样式 暗色 与 亮色)
-     * 对应原接口中的 DWMWA_* 常量
-     */
-    public enum DwmWindowAttribute {
-        // 沉浸式深色模式属性(暗色)
-        USE_IMMERSIVE_DARK_MODE(20),
-        // 窗口圆角偏好属性(亮色)
-        WINDOW_CORNER_PREFERENCE(33);
-
-        // 存储属性对应的整型值
-        private final int value;
-
-        // 私有构造方法初始化值
-        DwmWindowAttribute(int value) {
-            this.value = value;
-        }
-
-        // 获取属性对应的整型值
-        public int getValue() {
-            return value;
-        }
-
-        // 根据数值反向查找枚举（可选，便于使用）
-        public static DwmWindowAttribute fromValue(int value) {
-            for (DwmWindowAttribute attr : DwmWindowAttribute.values()) {
-                if (attr.value == value) {
-                    return attr;
-                }
-            }
-            throw new IllegalArgumentException("无效的DWM窗口属性值: " + value);
-        }
-    }
-
-    /**
-     * DWM窗口圆角偏好枚举
-     * 对应原接口中的 DWMWCP_* 常量
-     */
-    public enum DwmWindowCornerPreference {
-        // 默认圆角设置
-        DEFAULT(0),
-        // 不圆角
-        DO_NOT_ROUND(1),
-        // 圆角
-        ROUND(2),
-        // 小圆角
-        ROUND_SMALL(3);
-
-        // 存储偏好值对应的整型值
-        private final int value;
-
-        // 私有构造方法初始化值
-        DwmWindowCornerPreference(int value) {
-            this.value = value;
-        }
-
-        // 获取偏好值对应的整型值
-        public int getValue() {
-            return value;
-        }
-
-        // 根据数值反向查找枚举（可选）
-        public static DwmWindowCornerPreference fromValue(int value) {
-            for (DwmWindowCornerPreference pref : DwmWindowCornerPreference.values()) {
-                if (pref.value == value) {
-                    return pref;
-                }
-            }
-            throw new IllegalArgumentException("无效的DWM窗口圆角偏好值: " + value);
-        }
-    }
-
-
-    /**
-     * 系统背景类型（Windows 11）
-     *
-     * <p>
-     * 用于设置窗口的系统背景效果，如 Mica（云母）、Acrylic（亚克力）等。
-     * </p>
-     */
-    public enum SystemBackdropType {
-        /**
-         * 无背景效果
-         */
-        DWMSBT_NONE(1),
-
-        /**
-         * Mica 效果（云母）
-         */
-        DWMSBT_MICA(2),
-
-        /**
-         * Acrylic 效果（亚克力），需要 Windows 11
-         */
-        DWMSBT_ACRYLIC(3);
-
-        private final int value;
-
-        SystemBackdropType(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-    // Win32 常量定义（统一管理）
 
     /**
      * Win32 API 常量统一管理类
@@ -1215,12 +1264,11 @@ public class FXNativeWindowsTools {
             // 组合样式
             public static final long WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU
                     | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+            public static final long WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW;
             public static final long WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU;
-
             // 别名
             public static final long WS_SIZEBOX = WS_THICKFRAME;
             public static final long WS_TILED = WS_OVERLAPPED;
-            public static final long WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW;
         }
 
         /**
@@ -1509,54 +1557,6 @@ public class FXNativeWindowsTools {
             public static final int DWMSBT_TRANSIENTWINDOW = 3;
             public static final int DWMSBT_TABBEDWINDOW = 4;
         }
-    }
-
-    /**
-     * 调试工具：打印当前进程的所有窗口信息（包括窗口类名、标题、句柄）
-     *
-     * @implNote 仅适用于 Windows 平台
-     */
-    public static void printAllWindowsInfo() {
-        int currentPid = Kernel32Api.INSTANCE.GetCurrentProcessId();
-        System.out.println("\n========== 当前进程的所有窗口 ==========");
-        System.out.println("进程 ID: " + currentPid);
-        System.out.println();
-
-        final int[] windowCount = {0};
-
-        User32.INSTANCE.EnumWindows((hWnd, lParam) -> {
-            IntByReference windowPid = new IntByReference();
-            User32.INSTANCE.GetWindowThreadProcessId(hWnd, windowPid);
-
-            if (windowPid.getValue() == currentPid) {
-                windowCount[0]++;
-
-                // 获取窗口类名
-                char[] className = new char[256];
-                User32.INSTANCE.GetClassName(hWnd, className, className.length);
-                String classNameStr = new String(className).trim();
-
-                // 获取窗口标题
-                char[] windowText = new char[256];
-                User32.INSTANCE.GetWindowText(hWnd, windowText, windowText.length);
-                String windowTitle = new String(windowText).trim();
-
-                // 获取窗口句柄
-                long hwndValue = Pointer.nativeValue(hWnd.getPointer());
-
-                System.out.println("窗口 " + windowCount[0] + ":");
-                System.out.println("  句柄: 0x" + Long.toHexString(hwndValue).toUpperCase());
-                System.out.println("  类名: " + classNameStr);
-                System.out.println("  标题: " + (windowTitle.isEmpty() ? "(无标题)" : windowTitle));
-                System.out.println();
-            }
-            return true;
-        }, null);
-
-        if (windowCount[0] == 0) {
-            System.out.println("未找到任何窗口");
-        }
-        System.out.println("\n");
     }
 
 

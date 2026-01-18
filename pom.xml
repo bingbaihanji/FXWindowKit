@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.bingbaihanji</groupId>
-    <artifactId>bfxt</artifactId>
+    <artifactId>bfxwt</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -117,10 +117,10 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.bingbaihanji.bfxt.stage.DefaultLayout</mainClass>
+                    <mainClass>com.bingbaihanji.bfxwt.stage.DefaultLayout</mainClass>
                     <commandlineArgs>
-                        --add-opens javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxt
-                        --add-exports javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxt
+                        --add-opens javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxwt
+                        --add-exports javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxwt
                     </commandlineArgs>
                 </configuration>
             </plugin>
@@ -132,9 +132,9 @@
                 <configuration>
                     <!-- JVM 参数：添加必要的模块访问权限 -->
                     <argLine>
-                        --add-opens javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxt
-                        --add-exports javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxt
-                        --add-reads com.bingbaihanji.bfxt=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxwt
+                        --add-exports javafx.graphics/com.sun.glass.ui=com.bingbaihanji.bfxwt
+                        --add-reads com.bingbaihanji.bfxwt=ALL-UNNAMED
                     </argLine>
                     <!-- 使用模块路径运行测试 -->
                     <useModulePath>true</useModulePath>

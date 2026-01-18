@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;
 
-import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
 import com.sun.jna.platform.win32.WinDef;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -8,7 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
-import static com.bingbaihanji.bfxt.tools.FXNativeWindowsTools.isWindowMaximized;
+import static com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools.isWindowMaximized;
 
 /**
  *

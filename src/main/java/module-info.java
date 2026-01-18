@@ -1,4 +1,4 @@
-module com.bingbaihanji.bfxt {
+module com.bingbaihanji.bfxwt {
 
     requires com.sun.jna;
     requires com.sun.jna.platform;
@@ -11,9 +11,8 @@ module com.bingbaihanji.bfxt {
 
 
     // 导出你需要对外访问的包
-    exports com.bingbaihanji.bfxt.stage;
-    exports com.bingbaihanji.bfxt.tools;
-
+    exports com.bingbaihanji.bfxwt.stage;
+    exports com.bingbaihanji.bfxwt.tools;
 
 
 }

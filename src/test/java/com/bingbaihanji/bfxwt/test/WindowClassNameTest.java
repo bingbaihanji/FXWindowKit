@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;
 
-import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -28,6 +28,10 @@ import javafx.stage.Stage;
  */
 public class WindowClassNameTest extends Application {
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     @Override
     public void start(Stage primaryStage) {
         VBox root = new VBox(20);
@@ -54,9 +58,5 @@ public class WindowClassNameTest extends Application {
             System.out.println("✓ 如你所见，JavaFX 窗口的类名确实是 \"GlassWndClass\" 开头");
             System.out.println("✓ 完整格式通常为: GlassWndClass-GlassWindowClass-N (N 是数字)\n");
         });
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

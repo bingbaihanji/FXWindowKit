@@ -1,7 +1,7 @@
-package com.bingbaihanji.bfxt.test;//package com.bingbaihanji.bfxt.stage;
+package com.bingbaihanji.bfxwt.test;//package com.bingbaihanji.bfxwt.stage;
 //
-//import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
-//import com.bingbaihanji.bfxt.tools.FXWindowEmbedTools;
+//import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
+//import com.bingbaihanji.bfxwt.tools.FXWindowEmbedTools;
 //import com.sun.jna.Pointer;
 //import com.sun.jna.platform.win32.User32;
 //import com.sun.jna.platform.win32.WinDef;

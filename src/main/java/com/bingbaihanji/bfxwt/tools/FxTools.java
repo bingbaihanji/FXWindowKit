@@ -1,4 +1,4 @@
-package com.bingbaihanji.bfxt.tools;
+package com.bingbaihanji.bfxwt.tools;
 
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;

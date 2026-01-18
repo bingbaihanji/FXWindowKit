@@ -1,8 +1,8 @@
-package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;
 
-import com.bingbaihanji.bfxt.stage.AbstractCustomWindow;
-import com.bingbaihanji.bfxt.stage.WindowTheme;
-import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.bingbaihanji.bfxwt.stage.AbstractCustomWindow;
+import com.bingbaihanji.bfxwt.stage.WindowTheme;
+import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
 import com.sun.jna.platform.win32.WinDef;
 import javafx.application.Platform;
 import javafx.geometry.Insets;

@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt;
+package com.bingbaihanji.bfxwt;
 
-import com.bingbaihanji.bfxt.test.App;
+import com.bingbaihanji.bfxwt.test.App;
 import javafx.application.Application;
 
 /**
@@ -11,6 +11,6 @@ import javafx.application.Application;
  */
 public class Start {
     public static void main(String[] args) {
-        Application.launch(App.class,args);
+        Application.launch(App.class, args);
     }
 }

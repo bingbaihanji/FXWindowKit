@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt.test;//package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;//package com.bingbaihanji.bfxwt.test;
 //
-////import com.sun.glass.ui.Window;
+/// /import com.sun.glass.ui.Window;
 //import com.sun.jna.Pointer;
 //import com.sun.jna.platform.win32.BaseTSD;
 //import com.sun.jna.platform.win32.Kernel32;

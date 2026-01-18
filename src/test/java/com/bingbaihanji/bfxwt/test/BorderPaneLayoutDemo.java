@@ -1,16 +1,16 @@
-package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;
 
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.control.Label;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 
 public class BorderPaneLayoutDemo {
+
+    // 测试主方法
+    public static void main(String[] args) {
+        javafx.application.Application.launch(MyApp.class);
+    }
 
     protected Pane createUI() {
         // 创建根布局 BorderPane（模拟 AbstractCustomWindow 的 root）
@@ -64,8 +64,9 @@ public class BorderPaneLayoutDemo {
 
     /**
      * 封装创建带背景色和标签的 VBox 的工具方法
+     *
      * @param labelText 标签显示的文字
-     * @param bgColor VBox 的背景色
+     * @param bgColor   VBox 的背景色
      * @return 配置好的 VBox 组件
      */
     private VBox createColoredVBox(String labelText, Color bgColor) {
@@ -87,11 +88,6 @@ public class BorderPaneLayoutDemo {
         vbox.getChildren().add(label);
 
         return vbox;
-    }
-
-    // 测试主方法
-    public static void main(String[] args) {
-        javafx.application.Application.launch(MyApp.class);
     }
 
     // 内部类：JavaFX 应用入口

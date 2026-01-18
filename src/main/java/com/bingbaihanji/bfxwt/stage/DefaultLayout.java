@@ -1,4 +1,4 @@
-package com.bingbaihanji.bfxt.stage;
+package com.bingbaihanji.bfxwt.stage;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -17,9 +17,7 @@ import javafx.scene.layout.StackPane;
  */
 public abstract class DefaultLayout extends AbstractCustomWindow {
 
-    static void main(String[] args) {
-        launch(args);
-    }
+
 
     /**
      * 原来 start() 里写的「窗口标题」

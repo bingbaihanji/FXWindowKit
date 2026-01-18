@@ -1,7 +1,7 @@
-package com.bingbaihanji.bfxt.test;//package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;//package com.bingbaihanji.bfxwt.test;
 //
-//import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
-//import com.bingbaihanji.bfxt.tools.FxTools;
+//import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
+//import com.bingbaihanji.bfxwt.tools.FxTools;
 //import com.sun.jna.platform.win32.WinDef;
 //import javafx.application.Application;
 //import javafx.geometry.Pos;
@@ -16,7 +16,7 @@ package com.bingbaihanji.bfxt.test;//package com.bingbaihanji.bfxt.test;
 //import javafx.stage.Stage;
 //import javafx.stage.StageStyle;
 //
-///**
+/// **
 // *
 // * @author bingbaihanji
 // * @date 2026-01-12 19:23:32

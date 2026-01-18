@@ -1,4 +1,4 @@
-package com.bingbaihanji.bfxt.stage;
+package com.bingbaihanji.bfxwt.stage;
 
 /**
  * 窗口主题配置类

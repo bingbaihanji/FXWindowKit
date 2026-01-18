@@ -1,6 +1,6 @@
-package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxwt.test;
 
-import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.bingbaihanji.bfxwt.tools.FXNativeWindowsTools;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef;
 import javafx.application.Application;
@@ -20,6 +20,18 @@ import javafx.stage.Stage;
  * @date 2026-01-13
  */
 public class HWndTestNoJvmArgs extends Application {
+
+    public static void main(String[] args) {
+        System.out.println("╔════════════════════════════════════════════════════════════╗");
+        System.out.println("║  JavaFX 窗口句柄获取测试 - 无需 JVM 参数版本              ║");
+        System.out.println("║                                                            ║");
+        System.out.println("║  本程序演示三种不需要 JVM 参数的窗口句柄获取方法：        ║");
+        System.out.println("║  1. 通过窗口标题获取 (getHWndByTitle)                     ║");
+        System.out.println("║  2. 通过枚举窗口获取 (getHWndByEnumeration) - 推荐        ║");
+        System.out.println("║  3. 获取所有窗口 (getAllHWndByEnumeration)                ║");
+        System.out.println("╚════════════════════════════════════════════════════════════╝");
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -66,8 +78,8 @@ public class HWndTestNoJvmArgs extends Application {
                 StringBuilder sb = new StringBuilder("找到 " + hwnds.size() + " 个窗口:\n");
                 for (int i = 0; i < hwnds.size(); i++) {
                     sb.append("窗口").append(i + 1).append(": 0x")
-                      .append(Long.toHexString(Pointer.nativeValue(hwnds.get(i).getPointer())))
-                      .append("\n");
+                            .append(Long.toHexString(Pointer.nativeValue(hwnds.get(i).getPointer())))
+                            .append("\n");
                 }
                 hwndLabel.setText(sb.toString());
                 System.out.println("✓ 方法3成功: 找到 " + hwnds.size() + " 个窗口");
@@ -98,13 +110,13 @@ public class HWndTestNoJvmArgs extends Application {
         });
 
         root.getChildren().addAll(
-            titleLabel,
-            hwndLabel,
-            method1Button,
-            method2Button,
-            method3Button,
-            alphaButton,
-            resetAlphaButton
+                titleLabel,
+                hwndLabel,
+                method1Button,
+                method2Button,
+                method3Button,
+                alphaButton,
+                resetAlphaButton
         );
 
         // 设置唯一的窗口标题（方法1需要）
@@ -129,17 +141,5 @@ public class HWndTestNoJvmArgs extends Application {
             }
             System.out.println("========== 自动测试结束 ==========\n");
         });
-    }
-
-    public static void main(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║  JavaFX 窗口句柄获取测试 - 无需 JVM 参数版本              ║");
-        System.out.println("║                                                            ║");
-        System.out.println("║  本程序演示三种不需要 JVM 参数的窗口句柄获取方法：        ║");
-        System.out.println("║  1. 通过窗口标题获取 (getHWndByTitle)                     ║");
-        System.out.println("║  2. 通过枚举窗口获取 (getHWndByEnumeration) - 推荐        ║");
-        System.out.println("║  3. 获取所有窗口 (getAllHWndByEnumeration)                ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝");
-        launch(args);
     }
 }
