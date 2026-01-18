@@ -115,4 +115,12 @@ public record WindowTheme(String titleBarBgColor, String windowBgColor, String t
         );
     }
 
+    /*
+     * 判断当前主题是否为暗色主题
+     * 通过标题栏背景色判断：暗色主题的标题栏背景色为 "#3c3f41"
+     */
+    public boolean isDark() {
+        return "#3c3f41".equalsIgnoreCase(titleBarBgColor);
+    }
+
 }

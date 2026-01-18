@@ -1,6 +1,9 @@
 package com.bingbaihanji.bfxt.stage;
 
+import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
+import com.sun.jna.platform.win32.WinDef;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
@@ -21,6 +24,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.util.Objects;
+import java.util.Stack;
 
 /**
  * 自定义无边框窗口基类
@@ -61,6 +65,13 @@ public abstract class AbstractCustomWindow extends Application {
     private Region spacer;            // 标题栏弹性空白区域（用于左右分隔）
     private Label titleLabel;         // 标题文字标签（用于主题切换时更新样式）
     private Scene scene;              // 场景对象（用于动态更新CSS）
+
+    // 标题栏左右两侧组件管理
+    private Stack<javafx.scene.Node> leftComponentsStack;   // 左侧组件栈（按入栈顺序从左往右显示）
+    private Stack<javafx.scene.Node> rightComponentsStack;  // 右侧组件栈（按出栈顺序从左往右显示）
+    private HBox leftBox;             // 左侧组件容器
+    private HBox rightBox;            // 右侧组件容器
+
     // 当前主题
     private WindowTheme currentTheme;
     // 最大化状态及还原信息
@@ -69,13 +80,19 @@ public abstract class AbstractCustomWindow extends Application {
     // 拖拽移动相关
     private double dragOffsetX, dragOffsetY;
     // 窗口控制按钮引用
-    private Button minBtn, maxBtn, closeBtn;
+    private Button closeBtn, maxBtn, minBtn, toTopBtn, ThemeBtn;
     private ImageView maxBtnIcon;  // 最大化按钮的图标（用于动态切换）
+    private ImageView toTopBtnIcon;  // 置顶按钮的图标（用于动态切换）
+    private ImageView themeBtnIcon;  // 主题切换按钮的图标（用于动态切换）
     // 调整大小时的初始位置和尺寸
     private double resizeStartX;
     private double resizeStartY;
     private double resizeStartW;
     private double resizeStartH;
+
+
+    // 窗口是否始终置顶
+    private boolean alwaysOnTop = false;
 
     // 返回窗口标题文本  设置窗口标题时让子类实现即可
     protected String appTitle() {
@@ -85,6 +102,18 @@ public abstract class AbstractCustomWindow extends Application {
     // 返回窗口图标 设置图标时让子类返回有效Image对象即可
     protected Image appIcon() {
         return null;
+    }
+
+    // 子类重写此方法以启用置顶按钮
+
+    // 是否开启置顶按钮
+    protected boolean isAlwaysOnTopEnabled() {
+        return false;
+    }
+
+    // 是否开启主题切换功能
+    protected boolean isThemeSwitchEnabled() {
+        return false;
     }
 
     // 创建并返回窗口内容区域
@@ -105,7 +134,6 @@ public abstract class AbstractCustomWindow extends Application {
 
         // 更新窗口背景色
         root.setStyle("-fx-background-color: " + theme.windowBgColor() + ";");
-
         // 更新标题栏背景色
         titleBar.setStyle("""
                 -fx-background-color: %s;
@@ -126,6 +154,15 @@ public abstract class AbstractCustomWindow extends Application {
         updateButtonTheme(minBtn, WindowButtonType.MINIMIZE);
         updateButtonTheme(maxBtn, WindowButtonType.MAXIMIZE);
         updateButtonTheme(closeBtn, WindowButtonType.CLOSE);
+
+        // 如果启用了置顶按钮，也更新其样式
+        if (isAlwaysOnTopEnabled() && toTopBtn != null) {
+            updateButtonTheme(toTopBtn, WindowButtonType.TO_TOP);
+        }
+        // 如果启用了主题切换按钮，也更新其样式
+        if (isThemeSwitchEnabled() && ThemeBtn != null) {
+            updateButtonTheme(ThemeBtn, WindowButtonType.THEME_SWITCHING);
+        }
     }
 
     // 标题栏创建完成后的回调（可选，用于子类进行额外初始化）
@@ -143,32 +180,36 @@ public abstract class AbstractCustomWindow extends Application {
         this.stage = stage;
         stage.initStyle(StageStyle.UNDECORATED);  // 移除系统默认边框
 
-
-        // 初始化主题
+        // 1. 初始化主题
         currentTheme = getTheme();
 
-        // 创建主布局容器
+        // 2. 创建主布局容器
         root = new BorderPane();
         root.setStyle("-fx-background-color: " + currentTheme.windowBgColor() + ";");
 
-        // 组装窗口结构：标题栏 + 内容区域
+        // 3. 创建标题栏（必须在创建内容之前，因为子类可能在 createContent 中需要访问标题栏状态）
         titleBar = createTitleBar();
         root.setTop(titleBar);
-        root.setCenter(createContent());
 
-        // 创建场景并设置透明背景
+        // 4. 创建内容区域（由子类实现具体的 UI 布局）
+        Parent content = createContent();
+        if (content == null) {
+            throw new IllegalStateException("createContent() 不能返回 null，请在子类中正确实现此方法");
+        }
+        root.setCenter(content);
+
+        // 5. 创建场景并设置透明背景
         scene = new Scene(root, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
         scene.setFill(Color.TRANSPARENT);
 
-        // 应用菜单主题CSS
+        // 6. 应用菜单主题CSS
         applyMenuThemeCSS();
 
-        // 启用窗口拖拽和边缘调整大小功能
+        // 7. 启用窗口拖拽和边缘调整大小功能
         enableDrag();
         enableResize(scene);
 
-        // 显示窗口
-
+        // 8. 配置窗口属性并显示
         if (Objects.nonNull(appIcon())) {
             stage.getIcons().add(appIcon());
         }
@@ -177,16 +218,29 @@ public abstract class AbstractCustomWindow extends Application {
             stage.setTitle(appTitle());
         }
 
+        // 设置窗口最小尺寸约束
+        stage.setMinWidth(MIN_WINDOW_WIDTH);
+        stage.setMinHeight(MIN_WINDOW_HEIGHT);
+
         stage.setScene(scene);
         stage.show();
 
-        // 触发子类自定义初始化回调
+        // 9. 延迟执行的 Windows 平台特定设置（设置窗口圆角）
+        Platform.runLater(() -> {
+            WinDef.HWND hWnd = FXNativeWindowsTools.getHWndByEnumeration();
+            // 设置窗口圆角样式
+            FXNativeWindowsTools.setWindowCornerPreference(hWnd, FXNativeWindowsTools.DwmWindowCornerPreference.ROUND);
+        });
+
+        // 10. 触发子类自定义初始化回调
         onTitleBarReady();
     }
 
     /*
      * 创建自定义标题栏
-     * 包含应用图标、标题文字、菜单栏、弹性空白区域、窗口控制按钮
+     * 使用栈结构管理左右两侧组件，方便后续动态添加按钮
+     * 左侧栈：按入栈顺序从左往右显示（如：titleLabel -> menuBar）
+     * 右侧栈：按出栈顺序从左往右显示（如：入栈顺序 closeBtn -> maxBtn -> minBtn，显示顺序 minBtn -> maxBtn -> closeBtn）
      */
     private HBox createTitleBar() {
         HBox bar = new HBox();
@@ -202,20 +256,29 @@ public abstract class AbstractCustomWindow extends Application {
         // 标题栏整体使用默认光标（避免边缘调整大小光标影响）
         bar.setCursor(Cursor.DEFAULT);
 
+        // 初始化左右两侧的栈和容器
+        leftComponentsStack = new Stack<>();
+        rightComponentsStack = new Stack<>();
+        leftBox = new HBox();
+        leftBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);  // 左侧组件垂直居中对齐
+        rightBox = new HBox();
+        rightBox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);  // 右侧组件垂直居中对齐
+
+        //  左侧组件区域 
+        // 应用图标（可选）
         if (Objects.nonNull(appIcon())) {
-            // 应用图标
             ImageView icon = new ImageView(appIcon());
             icon.setFitWidth(APP_ICON_SIZE);
             icon.setFitHeight(APP_ICON_SIZE);
-            icon.setCursor(Cursor.DEFAULT);  // 图标区域使用默认光标
-            bar.getChildren().addAll(icon);
+            icon.setCursor(Cursor.DEFAULT);
+            leftComponentsStack.push(icon);  // 图标入栈
         }
-
 
         // 标题文字
         titleLabel = new Label(appTitle());
         titleLabel.setStyle("-fx-text-fill: " + currentTheme.titleTextColor() + "; -fx-padding: 0 8;");
-        titleLabel.setCursor(Cursor.DEFAULT);  // 标题文字区域使用默认光标
+        titleLabel.setCursor(Cursor.DEFAULT);
+        leftComponentsStack.push(titleLabel);  // 标题入栈
 
         // 菜单栏
         menuBar = new MenuBar();
@@ -224,33 +287,89 @@ public abstract class AbstractCustomWindow extends Application {
                 -fx-text-fill: %s;
                 -fx-text-base-color: %s;
                 """.formatted(currentTheme.titleTextColor(), currentTheme.titleTextColor()));
-        menuBar.setCursor(Cursor.DEFAULT);  // 菜单栏使用默认光标
-
-        // 配置菜单栏鼠标进入事件，强制恢复默认光标
+        menuBar.setCursor(Cursor.DEFAULT);
         menuBar.setOnMouseEntered(e -> {
             scene.setCursor(Cursor.DEFAULT);
             menuBar.setCursor(Cursor.DEFAULT);
         });
+        leftComponentsStack.push(menuBar);  // 菜单栏入栈
 
-        // 弹性空白区域（撑开左右两侧内容）
+        // 从左侧栈中按入栈顺序取出组件并添加到左侧HBox（保持入栈顺序：图标 -> 标题 -> 菜单栏）
+        Stack<javafx.scene.Node> tempStack = new Stack<>();
+        while (!leftComponentsStack.isEmpty()) {
+            tempStack.push(leftComponentsStack.pop());
+        }
+        while (!tempStack.isEmpty()) {
+            javafx.scene.Node node = tempStack.pop();
+            leftBox.getChildren().add(node);
+            leftComponentsStack.push(node);  // 重新压回栈以便后续管理
+        }
+
+
+        //  中间弹性空白区域 
         spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        spacer.setCursor(Cursor.DEFAULT);  // 空白区域使用默认光标
+        spacer.setCursor(Cursor.DEFAULT);
 
-        // 窗口控制按钮
-        minBtn = createWindowButton("/icons/min.png", WindowButtonType.MINIMIZE);
-        maxBtn = createWindowButton("/icons/max.png", WindowButtonType.MAXIMIZE);
+        //  右侧组件区域 
+        // 窗口控制按钮（按照期望的显示顺序反向入栈）
         closeBtn = createWindowButton("/icons/close.png", WindowButtonType.CLOSE);
+        rightComponentsStack.push(closeBtn);  // 关闭按钮先入栈（最后显示）
 
-        // 组装标题栏：图标 + 标题 + 菜单栏 + 弹性空白 + 最小化 + 最大化 + 关闭
-        bar.getChildren().addAll(titleLabel, menuBar, spacer, minBtn, maxBtn, closeBtn);
+        maxBtn = createWindowButton("/icons/max.png", WindowButtonType.MAXIMIZE);
+        rightComponentsStack.push(maxBtn);    // 最大化按钮入栈
+
+        minBtn = createWindowButton("/icons/min.png", WindowButtonType.MINIMIZE);
+        rightComponentsStack.push(minBtn);    // 最小化按钮入栈
+
+        // 如果启用置顶功能，添加置顶按钮
+        if (isAlwaysOnTopEnabled()) {
+            toTopBtn = createWindowButton("/icons/top.png", WindowButtonType.TO_TOP);
+            rightComponentsStack.push(toTopBtn);  // 置顶按钮入栈
+        }
+
+        // 如果启用主题切换功能，添加主题切换按钮
+        if (isThemeSwitchEnabled()) {
+            // 默认暗色主题，显示切换到亮色主题的图标
+            String themeIconPath = currentTheme.isDark() ? "/icons/lightTheme.png" : "/icons/darkTheme.png";
+            ThemeBtn = createWindowButton(themeIconPath, WindowButtonType.THEME_SWITCHING);
+            rightComponentsStack.push(ThemeBtn);  // 主题切换按钮入栈
+        }
+
+
+        // 从右侧栈中按出栈顺序取出组件并添加到右侧HBox（显示顺序：minBtn -> maxBtn -> closeBtn）
+        while (!rightComponentsStack.isEmpty()) {
+            rightBox.getChildren().add(rightComponentsStack.pop());
+        }
+
+        rightBox.setMinWidth(computeHBoxMinWidth(rightBox));
+        leftBox.setMinWidth(computeHBoxMinWidth(leftBox));
+        // 组装标题栏：左侧区域 + 弹性空白 + 右侧区域
+        bar.getChildren().addAll(leftBox, spacer, rightBox);
+
         return bar;
+    }
+    private double computeHBoxMinWidth(HBox box) {
+        double width = 0;
+
+        for (javafx.scene.Node node : box.getChildren()) {
+            if (node instanceof Region region) {
+                width += region.getMinWidth();
+            } else {
+                width += node.prefWidth(-1);
+            }
+        }
+
+        // 加上 HBox spacing
+        width += box.getSpacing() * Math.max(0, box.getChildren().size() - 1);
+
+        return width;
     }
 
     // 窗口控制按钮创建
 
     /*
-     * 创建窗口控制按钮（最小化、最大化、关闭）
+     * 创建窗口控制按钮（最小化、最大化、关闭、置顶、主题切换）
      * 包含图标、固定尺寸、点击行为、鼠标悬停/按下效果
      */
     private Button createWindowButton(String iconPath, WindowButtonType type) {
@@ -263,6 +382,14 @@ public abstract class AbstractCustomWindow extends Application {
         // 如果是最大化按钮，保存图标引用以便后续切换
         if (type == WindowButtonType.MAXIMIZE) {
             maxBtnIcon = iv;
+        }
+        // 如果是置顶按钮，保存图标引用以便后续切换
+        if (type == WindowButtonType.TO_TOP) {
+            toTopBtnIcon = iv;
+        }
+        // 如果是主题切换按钮，保存图标引用以便后续切换
+        if (type == WindowButtonType.THEME_SWITCHING) {
+            themeBtnIcon = iv;
         }
 
         Button btn = new Button();
@@ -283,6 +410,8 @@ public abstract class AbstractCustomWindow extends Application {
             case MINIMIZE -> btn.setOnAction(e -> stage.setIconified(true));       // 最小化到任务栏
             case MAXIMIZE -> btn.setOnAction(e -> toggleMaximize());                // 切换最大化/还原
             case CLOSE -> btn.setOnAction(e -> stage.close());                      // 关闭窗口
+            case TO_TOP -> btn.setOnAction(e -> toggleAlwaysOnTop());              // 切换置顶状态
+            case THEME_SWITCHING -> btn.setOnAction(e -> toggleTheme());           // 切换主题
         }
 
         // 配置鼠标悬停效果
@@ -327,6 +456,30 @@ public abstract class AbstractCustomWindow extends Application {
 
         // 添加到菜单栏
         menuBar.getMenus().add(menu);
+    }
+
+    /*
+     * 向标题栏左侧添加组件
+     * 新添加的组件会显示在左侧最右边（追加到左侧HBox末尾）
+     * 适用场景：在菜单栏后面添加自定义组件
+     * @param node 要添加的节点
+     */
+    protected final void addLeftComponent(javafx.scene.Node node) {
+        node.setCursor(Cursor.DEFAULT);  // 设置默认光标
+        leftBox.getChildren().add(node);
+        leftComponentsStack.push(node);  // 同步到栈中以便管理
+    }
+
+    /*
+     * 向标题栏右侧添加组件
+     * 新添加的组件会显示在右侧最左边（插入到右侧HBox开头）
+     * 适用场景：在最小化按钮前面添加自定义按钮（如主题切换、设置等）
+     * @param node 要添加的节点
+     */
+    protected final void addRightComponent(javafx.scene.Node node) {
+        node.setCursor(Cursor.DEFAULT);  // 设置默认光标
+        rightBox.getChildren().addFirst(node);  // 插入到最前面
+        rightComponentsStack.push(node);      // 同步到栈中以便管理
     }
 
     /*
@@ -431,17 +584,50 @@ public abstract class AbstractCustomWindow extends Application {
             // 切换到还原图标
             maxBtnIcon.setImage(new Image(getClass().getResourceAsStream("/icons/restoreIcon.png")));
         } else {
-            // 还原到之前的位置和尺寸
-            stage.setX(lastX);
-            stage.setY(lastY);
-            stage.setWidth(lastW);
-            stage.setHeight(lastH);
-
+            // 先设置状态为非最大化
             maximized = false;
+
+            // 使用 Platform.runLater 确保状态更新后再设置尺寸
+            Platform.runLater(() -> {
+                // 还原到之前的位置和尺寸
+                stage.setX(lastX);
+                stage.setY(lastY);
+                stage.setWidth(lastW);
+                stage.setHeight(lastH);
+            });
 
             // 切换到最大化图标
             maxBtnIcon.setImage(new Image(getClass().getResourceAsStream("/icons/max.png")));
         }
+    }
+
+    /*
+     * 切换窗口置顶状态
+     * 切换窗口是否始终显示在其他窗口之上，并更新按钮图标
+     */
+    private void toggleAlwaysOnTop() {
+        alwaysOnTop = !alwaysOnTop;
+        stage.setAlwaysOnTop(alwaysOnTop);
+
+        // 根据置顶状态切换图标
+        String iconPath = alwaysOnTop ? "/icons/openTop.png" : "/icons/top.png";
+        toTopBtnIcon.setImage(new Image(getClass().getResourceAsStream(iconPath)));
+    }
+
+    /*
+     * 切换窗口主题
+     * 在暗色主题和亮色主题之间切换，并更新主题切换按钮的图标
+     */
+    private void toggleTheme() {
+        // 切换主题：暗色 <-> 亮色
+        WindowTheme newTheme = currentTheme.isDark() ? WindowTheme.light() : WindowTheme.dark();
+        setTheme(newTheme);
+
+        // 根据新主题切换按钮图标
+        // 暗色主题显示亮色图标（表示可以切换到亮色）
+        // 亮色主题显示暗色图标（表示可以切换到暗色）
+        String iconPath = newTheme.isDark() ? "/icons/lightTheme.png" : "/icons/darkTheme.png";
+        themeBtnIcon.setImage(new Image(getClass().getResourceAsStream(iconPath)));
     }
 
     /*
@@ -631,6 +817,7 @@ public abstract class AbstractCustomWindow extends Application {
             }
         });
 
+
         // 重新绑定鼠标移出效果
         btn.setOnMouseExited(e -> btn.setStyle(currentTheme.btnStyleTransparent()));
     }
@@ -646,6 +833,8 @@ public abstract class AbstractCustomWindow extends Application {
     private enum WindowButtonType {
         MINIMIZE,   // 最小化按钮
         MAXIMIZE,   // 最大化/还原按钮
-        CLOSE       // 关闭按钮
+        CLOSE,      // 关闭按钮
+        TO_TOP,
+        THEME_SWITCHING
     }
 }

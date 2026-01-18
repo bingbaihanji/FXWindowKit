@@ -1,4 +1,4 @@
-//package com.bingbaihanji.bfxt.test;
+package com.bingbaihanji.bfxt.test;//package com.bingbaihanji.bfxt.test;
 //
 //import com.bingbaihanji.bfxt.tools.FXNativeWindowsTools;
 //import com.bingbaihanji.bfxt.tools.FxTools;
