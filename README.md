@@ -56,9 +56,6 @@ The core class `FXWindowEmbedTools` provides the following key capabilities:
 
 3. Ensure JNA-related dependencies are included in the project before use
 
-> （注：文档部分内容可能由 AI 生成）
-
-
 中文简介:
 javafx + jna 自定义窗口样式
 适合低版本javafx使用(高版本有 HeaderBar 类及其相关接口 可以直接设置窗口状态栏的样式)
